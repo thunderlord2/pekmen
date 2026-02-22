@@ -7,7 +7,7 @@ import requests
 # CONFIG
 # =============================
 
-SERVER_URL = "http://127.0.0.1:5000/submit"  # <-- CHANGE THIS
+SERVER_URL = "https://your-app-name.onrender.com/submit"
 NUM_FOOD = 10
 tile_width = 3
 
