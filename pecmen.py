@@ -116,7 +116,7 @@ def main(stdscr):
             stdscr.addstr(fy, fx, "*")
 
         # Draw player
-        sprite = ".<." if not direction else ".>."
+        sprite = ".<." if direction else ".>."
         stdscr.addstr(player_y, player_x, sprite)
 
         # Draw timer
