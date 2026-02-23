@@ -1,52 +1,52 @@
 from flask import Flask, request, jsonify
-import sqlite3
 import os
+import psycopg2
 
 app = Flask(__name__)
 
-DB_FILE = "leaderboard.db"
+# Get Render database URL from environment variable
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
-# =========================
-# DATABASE SETUP
-# =========================
+def get_conn():
+    return psycopg2.connect(DATABASE_URL)
 
+# Initialize table
 def init_db():
-    conn = sqlite3.connect(DB_FILE)
-    c = conn.cursor()
-    c.execute("""
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute("""
         CREATE TABLE IF NOT EXISTS scores (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             name TEXT NOT NULL,
-            time REAL NOT NULL
+            time FLOAT NOT NULL
         )
     """)
     conn.commit()
+    cur.close()
     conn.close()
 
+init_db()
+
+# Get current best score
 def get_best():
-    conn = sqlite3.connect(DB_FILE)
-    c = conn.cursor()
-    c.execute("SELECT name, time FROM scores ORDER BY time ASC LIMIT 1")
-    row = c.fetchone()
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute("SELECT name, time FROM scores ORDER BY time ASC LIMIT 1")
+    row = cur.fetchone()
+    cur.close()
     conn.close()
-
     if row:
         return {"name": row[0], "time": row[1]}
     return {"name": "", "time": float("inf")}
 
+# Insert a new score
 def insert_score(name, time_value):
-    conn = sqlite3.connect(DB_FILE)
-    c = conn.cursor()
-    c.execute("INSERT INTO scores (name, time) VALUES (?, ?)", (name, time_value))
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute("INSERT INTO scores (name, time) VALUES (%s, %s)", (name, time_value))
     conn.commit()
+    cur.close()
     conn.close()
-
-# Initialize database when server starts
-init_db()
-
-# =========================
-# SUBMIT ENDPOINT
-# =========================
 
 @app.route("/submit", methods=["POST"])
 def submit():
@@ -57,25 +57,17 @@ def submit():
     if new_time is None:
         return jsonify({"error": "Missing time"}), 400
 
-    current_best = get_best()
+    best = get_best()
 
-    if new_time < current_best["time"]:
+    if new_time < best["time"]:
         insert_score(name, new_time)
         return jsonify({"status": "new_record", "best": {"name": name, "time": new_time}})
     else:
-        return jsonify({"status": "not_record", "best": current_best})
+        return jsonify({"status": "not_record", "best": best})
 
-# =========================
-# BEST ENDPOINT
-# =========================
-
-@app.route("/best")
+@app.route("/best", methods=["GET"])
 def best():
     return jsonify(get_best())
-
-# =========================
-# HOMEPAGE
-# =========================
 
 @app.route("/")
 def homepage():
@@ -99,4 +91,5 @@ def homepage():
     """
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
