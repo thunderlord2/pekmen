@@ -1,79 +1,102 @@
 from flask import Flask, request, jsonify
+import sqlite3
 import os
-import json
 
 app = Flask(__name__)
 
-BEST_FILE = "global_best.json"
+DB_FILE = "leaderboard.db"
 
 # =========================
-# Load & Save Best
+# DATABASE SETUP
 # =========================
-def load_best():
-    if not os.path.exists(BEST_FILE):
-        return {"time": float("inf"), "name": ""}
-    try:
-        with open(BEST_FILE, "r") as f:
-            return json.load(f)
-    except:
-        return {"time": float("inf"), "name": ""}
 
-def save_best(best):
-    with open(BEST_FILE, "w") as f:
-        json.dump(best, f)
+def init_db():
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS scores (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            time REAL NOT NULL
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+def get_best():
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    c.execute("SELECT name, time FROM scores ORDER BY time ASC LIMIT 1")
+    row = c.fetchone()
+    conn.close()
+
+    if row:
+        return {"name": row[0], "time": row[1]}
+    return {"name": "", "time": float("inf")}
+
+def insert_score(name, time_value):
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    c.execute("INSERT INTO scores (name, time) VALUES (?, ?)", (name, time_value))
+    conn.commit()
+    conn.close()
+
+# Initialize database when server starts
+init_db()
 
 # =========================
-# Submit Time Endpoint
+# SUBMIT ENDPOINT
 # =========================
+
 @app.route("/submit", methods=["POST"])
 def submit():
     data = request.json
     new_time = data.get("time")
-    player_name = data.get("name", "Unknown")
+    name = data.get("name", "Unknown")
 
     if new_time is None:
         return jsonify({"error": "Missing time"}), 400
 
-    current = load_best()
+    current_best = get_best()
 
-    if new_time < current["time"]:
-        # New record
-        best = {"time": new_time, "name": player_name}
-        save_best(best)
-        return jsonify({"status": "new_record", "best": best})
+    if new_time < current_best["time"]:
+        insert_score(name, new_time)
+        return jsonify({"status": "new_record", "best": {"name": name, "time": new_time}})
     else:
-        return jsonify({"status": "not_record", "best": current})
+        return jsonify({"status": "not_record", "best": current_best})
 
 # =========================
-# Get Best Endpoint
+# BEST ENDPOINT
 # =========================
-@app.route("/best", methods=["GET"])
+
+@app.route("/best")
 def best():
-    return jsonify(load_best())
+    return jsonify(get_best())
 
 # =========================
-# Simple Homepage Display
+# HOMEPAGE
 # =========================
+
 @app.route("/")
 def homepage():
-    best_data = load_best()
-    return f"""
-    <h1>Global Best Time</h1>
-    <h2 id="time">{best_data['time'] if best_data['time'] != float('inf') else 'No record yet'} seconds</h2>
-    <h3 id="name">{best_data['name']}</h3>
+    return """
+    <h1>🏆 Global Best Time</h1>
+    <h2 id="time">Loading...</h2>
+    <h3 id="name"></h3>
     <script>
     fetch('/best')
         .then(r => r.json())
-        .then(data => {{
-            const t = data.time;
-            const n = data.name;
-            document.getElementById("time").innerText =
-                t !== Infinity ? t.toFixed(3) + " seconds" : "No record yet";
-            document.getElementById("name").innerText = n;
-        }});
+        .then(data => {
+            if (data.time === Infinity) {
+                document.getElementById("time").innerText = "No record yet";
+                document.getElementById("name").innerText = "";
+            } else {
+                document.getElementById("time").innerText = data.time.toFixed(3) + " seconds";
+                document.getElementById("name").innerText = "👑 " + data.name;
+            }
+        });
     </script>
     """
 
 if __name__ == "__main__":
-    print("Starting server...")
     app.run(host="0.0.0.0", port=5000)
