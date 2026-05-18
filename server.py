@@ -1,56 +1,81 @@
 from flask import Flask, request, jsonify
 import os
-import psycopg2
 
 app = Flask(__name__)
 
-# Get Render database URL from environment variable
-DATABASE_URL = os.environ.get("DATABASE_URL")
+BEST_FILE = "global_best.txt"
 
-def get_conn():
-    return psycopg2.connect(DATABASE_URL)
+# Create file if it doesn't exist
+def init_file():
+    if not os.path.exists(BEST_FILE):
+        with open(BEST_FILE, "w") as f:
+            f.write("None\n")
+            f.write("999999999\n")
 
-# Initialize table
-def init_db():
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS scores (
-            id SERIAL PRIMARY KEY,
-            name TEXT NOT NULL,
-            time FLOAT NOT NULL
-        )
-    """)
-    conn.commit()
-    cur.close()
-    conn.close()
+init_file()
 
-init_db()
-
-# Get current best score
+# Read best score
 def get_best():
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute("SELECT name, time FROM scores ORDER BY time ASC LIMIT 1")
-    row = cur.fetchone()
-    cur.close()
-    conn.close()
-    if row:
-        return {"name": row[0], "time": row[1]}
-    return {"name": "", "time": float("inf")}
+    try:
+        with open(BEST_FILE, "r") as f:
+            lines = f.readlines()
 
-# Insert a new score
-def insert_score(name, time_value):
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute("INSERT INTO scores (name, time) VALUES (%s, %s)", (name, time_value))
-    conn.commit()
-    cur.close()
-    conn.close()
+            if len(lines) < 2:
+                return {"name": "", "time": None}
+
+            name = lines[0].strip()
+            time_value = float(lines[1].strip())
+
+            if name == "None":
+                return {"name": "", "time": None}
+
+            return {
+                "name": name,
+                "time": time_value
+            }
+
+    except:
+        return {"name": "", "time": None}
+
+# Save new best score
+def save_best(name, time_value):
+    with open(BEST_FILE, "w") as f:
+        f.write(f"{name}\n")
+        f.write(f"{time_value}\n")
+
+@app.route("/")
+def homepage():
+    return """
+    <h1>Global Best Time</h1>
+
+    <h2 id="time">Loading...</h2>
+    <h3 id="name"></h3>
+
+    <script>
+    fetch('/best')
+        .then(r => r.json())
+        .then(data => {
+
+            if (data.time === null) {
+                document.getElementById("time").innerText =
+                    "No record yet";
+
+                return;
+            }
+
+            document.getElementById("time").innerText =
+                data.time.toFixed(3) + " seconds";
+
+            document.getElementById("name").innerText =
+                "By: " + data.name;
+        });
+    </script>
+    """
 
 @app.route("/submit", methods=["POST"])
 def submit():
     data = request.json
+
     new_time = data.get("time")
     name = data.get("name", "Unknown")
 
@@ -59,37 +84,32 @@ def submit():
 
     best = get_best()
 
-    if new_time < best["time"]:
-        insert_score(name, new_time)
-        return jsonify({"status": "new_record", "best": {"name": name, "time": new_time}})
-    else:
-        return jsonify({"status": "not_record", "best": best})
+    # If no record yet OR better time
+    if best["time"] is None or new_time < best["time"]:
 
-@app.route("/best", methods=["GET"])
+        save_best(name, new_time)
+
+        return jsonify({
+            "status": "new_record",
+            "best": {
+                "name": name,
+                "time": new_time
+            }
+        })
+
+    return jsonify({
+        "status": "not_record",
+        "best": best
+    })
+
+@app.route("/best")
 def best():
     return jsonify(get_best())
 
-@app.route("/")
-def homepage():
-    return """
-    <h1>Global Best Time</h1>
-    <h2 id="time">Loading...</h2>
-    <h3 id="name"></h3>
-    <script>
-    fetch('/best')
-        .then(r => r.json())
-        .then(data => {
-            if (data.time === Infinity) {
-                document.getElementById("time").innerText = "No record yet";
-                document.getElementById("name").innerText = "";
-            } else {
-                document.getElementById("time").innerText = data.time.toFixed(3) + " seconds";
-                document.getElementById("name").innerText = data.name;
-            }
-        });
-    </script>
-    """
-
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+
+    app.run(
+        host="0.0.0.0",
+        port=port
+    )
