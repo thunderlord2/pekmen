@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, abort
 import os
 
 app = Flask(__name__)
@@ -15,6 +15,25 @@ def init_file():
 init_file()
 
 # Read best score
+
+@app.route("/download")
+def download():
+
+    file_path = os.path.join(
+        os.path.dirname(__file__),
+        "dist",
+        "pecmen",
+        "pecmen.exe"
+    )
+
+    if not os.path.exists(file_path):
+        return "EXE file not found on server", 404
+
+    return send_file(
+        file_path,
+        as_attachment=True
+    )
+
 def get_best():
     try:
         with open(BEST_FILE, "r") as f:
@@ -43,10 +62,6 @@ def save_best(name, time_value):
         f.write(f"{name}\n")
         f.write(f"{time_value}\n")
 
-
-@app.route("/download")
-def download():
-    return send_file("dist/pecmen/pecmen.exe", as_attachment=True)
 
 
 @app.route("/")
