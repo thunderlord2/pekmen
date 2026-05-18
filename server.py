@@ -72,7 +72,7 @@ def homepage():
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
 
-        .download-buttonn:hover {
+        .download-button:hover {
             background: #45a049;
             transform: scale(1.05);
         }
