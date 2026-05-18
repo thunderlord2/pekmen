@@ -63,7 +63,7 @@ def homepage():
             display: inline-block;
             padding: 14px 28px;
             background: #4CAF50;
-            color: white;
+            color: azure;
             text-decoration: none;
             font-size: 18px;
             border-radius: 10px;
@@ -77,7 +77,7 @@ def homepage():
             transform: scale(1.05);
         }
 
-        .download-buttonn:active {
+        .download-button:active {
             transform: scale(0.98);
         }
 
