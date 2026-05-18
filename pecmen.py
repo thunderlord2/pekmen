@@ -1,7 +1,6 @@
 import curses
 import time
 import random
-import os
 import requests
 
 # =============================
@@ -158,6 +157,7 @@ def main(stdscr):
             player_x, player_y = new_x, new_y
 
             # Collect food
+            # Collect food
             for offset in range(3):
                 if (player_y, player_x + offset) in foods:
                     foods.remove((player_y, player_x + offset))
@@ -166,23 +166,64 @@ def main(stdscr):
             # GAME FINISHED
             # =============================
             if not foods:
+
                 total_time = time.time() - start_time
 
-                # Check global best
-                try:
-                    response = requests.get(SERVER_BEST_URL, timeout=2)
-                    if response.status_code == 200:
-                        global_best = response.json()
-                        if total_time < global_best.get("time", float("inf")):
-                            # Player got new global best
-                            curses.endwin()  # exit curses to allow input
-                            player_name = input("You got the best time! Enter your name: ")
-                            # Send to server
-                            requests.post(SERVER_URL, json={"time": total_time, "name": player_name}, timeout=2)
-                except requests.exceptions.RequestException:
-                    pass
+                curses.endwin()
 
-                break
+                try:
+                    response = requests.get(
+                        SERVER_BEST_URL,
+                        timeout=5
+                    )
+
+                    best_time = float("inf")
+
+                    if response.status_code == 200:
+
+                        data = response.json()
+
+                        if data.get("time") is not None:
+                            best_time = data["time"]
+
+                    # NEW RECORD
+                    if total_time < best_time:
+
+                        player_name = input(
+                            "NEW GLOBAL BEST! Enter your name: "
+                        )
+
+                        requests.post(
+                            SERVER_URL,
+                            json={
+                                "time": total_time,
+                                "name": player_name
+                            },
+                            timeout=5
+                        )
+
+                        print("\nScore submitted!")
+
+                    else:
+
+                        print(
+                            f"\nFinished in "
+                            f"{total_time:.3f} seconds"
+                        )
+
+                        print(
+                            f"Global best: "
+                            f"{best_time:.3f} seconds"
+                        )
+
+                except requests.exceptions.RequestException:
+
+                    print("\nCould not connect to server.")
+                    print(f"Your time: {total_time:.3f}")
+
+                input("\nPress Enter to exit...")
+
+                return
 
             last_move_time = now
 

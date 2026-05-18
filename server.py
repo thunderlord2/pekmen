@@ -55,6 +55,7 @@ def homepage():
         .text {
             color: azure;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
         }
@@ -62,8 +63,8 @@ def homepage():
 </head>
 <body>
     <div class="text" id="text1">
-        <h1>Global Best Time</h1>
-        <h2 id="time">Loading...</h2>
+        <h1>Global Best Time </h1>
+        <h2 id="time">Loading... </h2>
         <h3 id="name"></h3>
     </div>
 </body>
