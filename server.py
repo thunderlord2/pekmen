@@ -72,7 +72,7 @@ def best():
 @app.route("/")
 def homepage():
     return """
-    <h1>🏆 Global Best Time</h1>
+    <h1>Global Best Time</h1>
     <h2 id="time">Loading...</h2>
     <h3 id="name"></h3>
     <script>
@@ -84,7 +84,7 @@ def homepage():
                 document.getElementById("name").innerText = "";
             } else {
                 document.getElementById("time").innerText = data.time.toFixed(3) + " seconds";
-                document.getElementById("name").innerText = "👑 " + data.name;
+                document.getElementById("name").innerText = data.name;
             }
         });
     </script>
