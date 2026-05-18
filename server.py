@@ -46,7 +46,7 @@ def save_best(name, time_value):
 
 @app.route("/download")
 def download():
-    return send_file("pecmen.exe", as_attachment=True)
+    return send_file("dist/pecmen/pecmen.exe", as_attachment=True)
 
 
 @app.route("/")
