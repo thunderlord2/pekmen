@@ -59,7 +59,7 @@ def homepage():
             justify-content: center;
             align-items: center;
         }
-        .download-btn {
+        .download-button {
             display: inline-block;
             padding: 14px 28px;
             background: #4CAF50;
@@ -72,12 +72,12 @@ def homepage():
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
 
-        .download-btn:hover {
+        .download-buttonn:hover {
             background: #45a049;
             transform: scale(1.05);
         }
 
-        .download-btn:active {
+        .download-buttonn:active {
             transform: scale(0.98);
         }
 
