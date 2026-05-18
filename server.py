@@ -60,7 +60,8 @@ def homepage():
             align-items: center;
         }
         .download-button {
-            display: inline-block;
+            dispaly: flex;
+            align-items: center;
             padding: 14px 28px;
             background: #4CAF50;
             color: azure;
