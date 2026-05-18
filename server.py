@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 import os
 
 app = Flask(__name__)
@@ -43,6 +43,12 @@ def save_best(name, time_value):
         f.write(f"{name}\n")
         f.write(f"{time_value}\n")
 
+
+@app.route("/download")
+def download():
+    return send_file("pecmen.exe", as_attachment=True)
+
+
 @app.route("/")
 def homepage():
     return """
@@ -60,7 +66,8 @@ def homepage():
             align-items: center;
         }
         .download-button {
-            dispaly: flex;
+            display: flex;
+            justify-content: center;
             align-items: center;
             padding: 14px 28px;
             background: #4CAF50;
@@ -81,7 +88,11 @@ def homepage():
         .download-button:active {
             transform: scale(0.98);
         }
-
+        .buttoncontainer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
@@ -90,9 +101,11 @@ def homepage():
         <h2 id="time">Loading... </h2>
         <h3 id="name"></h3>
     </div>
+    <div class="buttoncontainer">
     <a href="/download" class="download-button">
         Download Game
     </a>
+    </div>
     
 </body>
 <footer>
