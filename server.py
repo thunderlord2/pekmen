@@ -50,10 +50,13 @@ def homepage():
 <head>
     <style>
         body {
-            background-color: #333333;
+            background-color: #020403;
         }
         .text {
-            background-color: azure;
+            color: azure;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
     </style>
 </head>
