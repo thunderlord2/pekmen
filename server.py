@@ -59,6 +59,28 @@ def homepage():
             justify-content: center;
             align-items: center;
         }
+        .download-btn {
+            display: inline-block;
+            padding: 14px 28px;
+            background: #4CAF50;
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            border-radius: 10px;
+            font-family: Arial, sans-serif;
+            transition: 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .download-btn:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+
+        .download-btn:active {
+            transform: scale(0.98);
+        }
+
     </style>
 </head>
 <body>
@@ -67,6 +89,10 @@ def homepage():
         <h2 id="time">Loading... </h2>
         <h3 id="name"></h3>
     </div>
+    <a href="C:\Users\Thunderlord\Desktop\vs code\pacman\dist\pecmen\pecmen.exe"
+    download class="download-button">Download Game
+    </a>
+    
 </body>
 <footer>
         <script>
