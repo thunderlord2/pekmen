@@ -89,8 +89,8 @@ def homepage():
         <h2 id="time">Loading... </h2>
         <h3 id="name"></h3>
     </div>
-    <a href="C:\Users\Thunderlord\Desktop\vs code\pacman\dist\pecmen\pecmen.exe"
-    download class="download-button">Download Game
+    <a href="/download" class="download-button">
+        Download Game
     </a>
     
 </body>
