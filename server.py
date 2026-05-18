@@ -117,7 +117,7 @@ def homepage():
         <h3 id="name"></h3>
     </div>
     <div class="buttoncontainer">
-    <a href="dist/pecmen/pecmen.exe" class="download-button">
+    <a href="download" class="download-button">
         Download Game
     </a>
     </div>
