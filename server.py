@@ -46,12 +46,26 @@ def save_best(name, time_value):
 @app.route("/")
 def homepage():
     return """
-    <h1>Global Best Time</h1>
-
-    <h2 id="time">Loading...</h2>
-    <h3 id="name"></h3>
-
-    <script>
+<!DOCTYPE html>
+<head>
+    <style>
+        body {
+            background-color: #333333;
+        }
+        .text {
+            background-color: azure;
+        }
+    </style>
+</head>
+<body>
+    <div class="text" id="text1">
+        <h1>Global Best Time</h1>
+        <h2 id="time">Loading...</h2>
+        <h3 id="name"></h3>
+    </div>
+</body>
+<footer>
+        <script>
     fetch('/best')
         .then(r => r.json())
         .then(data => {
@@ -70,6 +84,7 @@ def homepage():
                 "By: " + data.name;
         });
     </script>
+</footer>
     """
 
 @app.route("/submit", methods=["POST"])
